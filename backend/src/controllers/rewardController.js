@@ -3,51 +3,54 @@ const User = require('../models/User');
 
 exports.createReward = async (req, res) => {
   try {
-    const { name, requiredStamps, description } = req.body;
-    const reward = new Reward({ name, requiredStamps, description });
+    const { title, requiredStamps, description } = req.body;
+    const reward = new Reward({ title, requiredStamps, description });
     await reward.save();
-    res.status(201).json({ message: 'Recompensa criada', reward });
+    return res.status(201).json(reward);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Erro interno no servidor' });
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
 
-exports.getRewards = async (req, res) => {
+exports.getAllRewards = async (req, res) => {
   try {
-    const rewards = await Reward.find();
-    res.status(200).json(rewards);
+    const rewards = await Reward.find({});
+    return res.status(200).json(rewards);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Erro interno no servidor' });
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
 
 exports.redeemReward = async (req, res) => {
   try {
-    const { userId, rewardId } = req.body;
-    const user = await User.findById(userId);
+    const userId = req.params.userId;
+    const rewardId = req.params.rewardId;
+
     const reward = await Reward.findById(rewardId);
-
-    if (!user || !reward) {
-      return res.status(404).json({ message: 'Usuário ou recompensa não encontrada' });
+    if (!reward) {
+      return res.status(404).json({ message: 'Recompensa não encontrada.' });
     }
 
-    // Verifica se o usuário tem carimbos suficientes
-    if (user.stampCount < reward.requiredStamps) {
-      return res.status(400).json({ message: 'Carimbos insuficientes' });
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Usuário não encontrado.' });
     }
 
-    // Desconta os carimbos
-    user.stampCount -= reward.requiredStamps;
+    if (user.stamps < reward.requiredStamps) {
+      return res.status(400).json({ message: 'Carimbos insuficientes.' });
+    }
+
+    // Desconta os carimbos do usuário
+    user.stamps -= reward.requiredStamps;
     await user.save();
 
-    res.status(200).json({ 
-      message: 'Recompensa resgatada com sucesso!',
-      remainingStamps: user.stampCount 
+    return res.status(200).json({
+      message: `Recompensa "${reward.title}" resgatada com sucesso!`,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Erro interno no servidor' });
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };

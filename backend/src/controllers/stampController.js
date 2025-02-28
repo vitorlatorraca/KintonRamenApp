@@ -3,41 +3,35 @@ const Stamp = require('../models/Stamp');
 
 exports.addStamp = async (req, res) => {
   try {
-    const { userId } = req.body; 
-    // userId é o ID do cliente que receberá o carimbo
+    const userId = req.params.userId; // /api/stamps/add/:userId
+    const { ramenType } = req.body;
 
-    // 1. Incrementar o stampCount do usuário
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Usuário não encontrado' });
-    }
-    user.stampCount += 1;
-    await user.save();
-
-    // 2. (Opcional) Criar um documento na coleção de stamps
-    const newStamp = new Stamp({
-      userId: userId,
-      // orderId: se quiser vincular ao pedido
+    // Cria um novo registro de carimbo
+    const newStamp = await Stamp.create({
+      user: userId,
+      ramenType,
     });
-    await newStamp.save();
 
-    res.status(200).json({
-      message: 'Carimbo adicionado com sucesso',
-      stampCount: user.stampCount
+    // Incrementa a contagem de carimbos do usuário
+    await User.findByIdAndUpdate(userId, { $inc: { stamps: 1 } });
+
+    return res.status(201).json({
+      message: 'Carimbo adicionado com sucesso.',
+      stamp: newStamp,
     });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Erro interno no servidor' });
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };
 
-exports.getStampsByUser = async (req, res) => {
+exports.getStamps = async (req, res) => {
   try {
-    const { userId } = req.params;
-    const stamps = await Stamp.find({ userId });
-    res.status(200).json(stamps);
+    const userId = req.params.userId;
+    const stamps = await Stamp.find({ user: userId }).sort({ createdAt: -1 });
+    return res.status(200).json(stamps);
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: 'Erro interno no servidor' });
+    return res.status(500).json({ message: 'Erro interno do servidor.' });
   }
 };

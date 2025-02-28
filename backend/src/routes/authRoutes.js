@@ -1,15 +1,8 @@
 const express = require('express');
 const router = express.Router();
-const authController = require('../../controllers/authController');
-const authMiddleware = require('../../utils/authMiddleware');
+const { register, login } = require('../controllers/authController');
 
-// Registro
-router.post('/register', authController.register);
-
-// Login
-router.post('/login', authController.login);
-
-// Perfil do usuário (rota protegida)
-router.get('/profile', authMiddleware, authController.getProfile);
+router.post('/register', register);
+router.post('/login', login);
 
 module.exports = router;

@@ -1,12 +1,12 @@
 const express = require('express');
 const router = express.Router();
-const stampController = require('../../controllers/stampController');
-const authMiddleware = require('../../utils/authMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
+const { addStamp, getStamps } = require('../controllers/stampController');
 
-// Adicionar carimbo (precisa de role admin ou do funcionário do restaurante)
-router.post('/add', authMiddleware, stampController.addStamp);
+// Adiciona um carimbo ao usuário
+router.post('/add/:userId', authMiddleware, addStamp);
 
-// Listar carimbos de um usuário
-router.get('/user/:userId', authMiddleware, stampController.getStampsByUser);
+// Lista carimbos de um usuário
+router.get('/user/:userId', authMiddleware, getStamps);
 
 module.exports = router;

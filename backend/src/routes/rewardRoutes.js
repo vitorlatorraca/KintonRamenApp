@@ -1,15 +1,19 @@
 const express = require('express');
 const router = express.Router();
-const rewardController = require('../../controllers/rewardController');
-const authMiddleware = require('../../utils/authMiddleware');
+const authMiddleware = require('../middlewares/authMiddleware');
+const {
+  createReward,
+  getAllRewards,
+  redeemReward,
+} = require('../controllers/rewardController');
 
-// Criar recompensa (admin)
-router.post('/', authMiddleware, rewardController.createReward);
+// Criar recompensa (pode ser rota protegida, ex.: só o admin do restaurante)
+router.post('/', authMiddleware, createReward);
 
-// Listar recompensas (disponível para todos)
-router.get('/', rewardController.getRewards);
+// Listar todas as recompensas
+router.get('/', authMiddleware, getAllRewards);
 
-// Resgatar recompensa (usuário logado)
-router.post('/redeem', authMiddleware, rewardController.redeemReward);
+// Resgatar recompensa
+router.post('/:userId/:rewardId', authMiddleware, redeemReward);
 
 module.exports = router;
